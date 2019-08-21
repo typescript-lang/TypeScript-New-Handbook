@@ -2,3 +2,4 @@ node_modules
 bin
 scripts/*.js
 !scripts/theme-to-css.js
+.idea
