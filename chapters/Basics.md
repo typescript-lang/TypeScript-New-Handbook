@@ -2,51 +2,39 @@
 
 __toc__
 
-Each and every value in JavaScript has a set of behaviors you can observe from running different operations.
-That sounds abstract, but as a quick example, consider some operations we might run on a variable named `foo`.
+JavaScript 中的每个值都有一些行为，你可以通过运行不同的操作来观察这些行为。
+这听起来很抽象，这里作为一个简单的例子，我们可以在名为 `foo` 的变量上做一些不同操作来尝试下。
 
 ```js
-// accessing the property 'toLowerCase'
-// on 'foo' and then calling it
+// 访问 'foo' 上的 'toLowerCase' 属性，然后调用它
 foo.toLowerCase();
 
-// calling 'foo'
+// 调用 'foo'
 foo();
 ```
 
-If we break this down, the first runnable line of code accesses a property called `toLowerCase` and then calls it.
-The second one tries to call `foo` directly.
+如果我们将上面的代码分解，第一行代码访问了一个名为 `toLowerCase` 的属性，然后调用它，第二行代码尝试直接调用 `foo`。
 
-But assuming we don't know the value of `foo` - and that's pretty common - we can't reliably say what results we'll get from trying to run any of this code.
-The behavior of each operation depends entirely on what value we had in the first place.
-Is `foo` callable?
-Does it have a property called `toLowerCase` on it?
-And if it does, is `toLowerCase` callable?
-If all of these values are callable, what do they return?
-The answers to these questions are usually things we keep in our heads when we write JavaScript, and we have to hope we got all the details right.
+但假设我们不知道 `foo` 的值——这很普遍——我们无法准确的说出我们试图运行的任何代码的结果，每项操作的结果完全取决于我们最开始获取的是什么值，是 `foo` 是否可调用？或 `foo` 是否有 `toLowerCase` ？如果有，那 `toLowerCase` 是否可调用？如果所有这些值都可以调用，它们会返回什么？在我们写 JavaScript 时我们的头脑中总是在考虑这些问题，我们希望能掌握跟多的细节。
 
-Let's say `foo` was defined in the following way.
+假设`foo`是按以下方式定义的。
 
 ```js
 let foo = "Hello World!";
 ```
 
-As you can probably guess, if we try to run `foo.toLowerCase()`, we'll get the same string, but completely in lower-case letters.
+你可能猜到，如果我们尝试运行 `foo.toLowerCase()` ，我们将得到相同的但都是小写字母的字符串。
 
-What about that second line of code?
-If you're familiar with JavaScript, you'll know this fails with an exception:
+那第二行代码呢？如果你熟悉 JavaScript ，你会知道这会失败并返回下面的异常：
 
 ```txt
 TypeError: foo is not a function
 ```
 
-It'd be great if we could avoid mistakes like this.
-When we run our code, the way that our JavaScript runtime chooses what to do is by figuring out the *type* of the value - what sorts of behaviors and capabilities it has.
-That's part of what that `TypeError` is alluding to - it's saying that there's nothing to call on the string `"Hello World"`.
+如果我们能避免这样的错误，那就太棒了。当我们运行代码时，JavaScript 运行时是通过计算值的 *类型* 选择执行结果 ——它具有哪些行为和功能。上面的 `TypeError` 包含了——没有什么可以调用字符串 `"Hello World"`。
 
-For some values, such as the primitives `string` and `number`, we can identify their type at runtime using the `typeof` operator.
-But for other things like functions, there's no corresponding runtime mechanism to identify their types.
-For example, consider this function:
+对于某些值，例如基本类型 `string` 和 `number` ，我们能可以使用 `typeof` 运算符在运行时识别它们的类型。但是对于像函数等这些类型，我们没有相应的运行时机制识别它们的类型。比如，我们看下面这个函数：
+
 
 ```js
 function fn(x) {
@@ -54,29 +42,20 @@ function fn(x) {
 }
 ```
 
-We can *observe* by reading the code that this function will only work if given an object with a callable `flip` property, but JavaScript doesn't surface this information in a way that we can check while the code is running.
-The only way in pure JavaScript to tell what `fn` does with a particular value is to call it and see what happens.
-This kind of behavior makes it hard to predict what code will do before it runs, which means it's harder to know what your code is going to do while you're writing it.
+我们可以通过阅读代码知道—— *observe* ，只有给函数传入一个可以调用的 `flip` 属性的对象时上面代码才能执行，但是 JavaScript 并没有以我们可以在代码运行时检查的方式显示此信息。 在原生 JavaScript 中，只能通过输入不同的值然后调用 `fn` 来确定会发生什么。这种行为让我们很难在代码运行前预测代码的运行结果，这意味着我们在编写代码时很难知道代码在运行时的行为。
 
-Seen in this way, a *type* is the concept of describing which values are legal to pass to `fn` and which aren't legal.
-JavaScript only truly provides *dynamic* typing - running the code to see what happens.
+从这个角度看， *类型* 是描述哪些值传递给 `fn` 是合法的而哪些是不合法的概念。JavaScript 的确提供了 *动态* 类型——运行代码才能确定会发生什么。
 
-The alternative is to use a *static* type system to make predictions about what code is legal *before* it runs.
+另外一种方法是使用 *静态* 类型系统在代码运行 *之前* 预测哪些代码是合法的。
 
-## Static type-checking
+## 静态类型检查
 
-Think back to that `TypeError` we got earlier from calling a `string`.
-*Most people* don't like to get any sorts of errors when running their code - those are considered bugs!
-And when we write new code, we try our best to avoid introducing new bugs.
+回想下我们前面调用 `string` 得到的 `TypeError` 。
+*大多数人* 不喜欢代码运行时出现任何错误——这些都被当做 bug！当我们编写新代码时，我们也会尽可能避免引入新的 bug。
 
-If we add just a bit of code, save our file, refresh our app, and immediately see the error, we might be able to isolate the problem quickly; but that's not always the case.
-We might not have tested the feature thoroughly enough, so we might never actually run into a potential error that would be thrown!
-Or if we were lucky enough to witness the error, we might have ended up doing large refactorings and adding a lot of different code that we're forced to dig through.
+如果我们只是新增了一点代码，保存文件，刷新应用，并且立刻看到错误，我们可能快速处理掉问题；但事实不总是如此。我们对该功能可能没有足够的测试，所以我们可能永远也不会触发隐藏的问题！或者我们很幸运发现了这些问题，最后我们可能做了大量重构并添加了很多不得不深入研究的代码。
 
-Ideally, we could have a tool that helps us find these bugs *before* our code runs.
-That's what a static type-checker like TypeScript does.
-*Static types systems* describe the shapes and behaviors of what our values will be when we run our programs.
-A type-checker like TypeScript uses that information and tells us when things might be going off the rails.
+理想情况下，我们可以使用工具在代码运行 *之前* 帮我们发现这些 bug。这正是像 TypeScript 这类静态类型检查工具所做的事。*静态类型系统* 描述了我们的程序运行时值的形状和行为。像 TypeScript 这类类型检查器会告诉我们什么时候可能会出现问题。
 
 ```ts
 let foo = "hello!";
@@ -84,16 +63,13 @@ let foo = "hello!";
 foo();
 ```
 
-Running that last sample with TypeScript will give us an error message before we run the code in the first place.
+把上面的例子运行在 TypeScript 中，我们会在代码执行之前得到错误提示。
 
-## Non-exception Failures
+## 非异常（Non-exception）错误
 
-So far we've been discussing certain things like runtime errors - cases where the JavaScript runtime throws its hands up and tells us that it thinks something is nonsensical.
-Those cases come up because [the ECMAScript specification](https://tc39.github.io/ecma262/) has explicit instructions on how the language should behave when it runs into something unexpected.
+目前为止我们一直在讨论运行时发生的比较明确的错误，JavaScript 在运行时抛出这些错误并且给出错误信息，这是因为 [ECMAScript 规范](https://tc39.github.io/ecma262/) 明确说明了语言在运行到意外情况时应该如果表现。
 
-For example, the specification says that trying to call something that isn't callable should throw an error.
-Maybe that sounds like "obvious behavior", but you could imagine that accessing a property that doesn't exist on an object should throw an error too.
-Instead, JavaScript gives us different behavior and returns the value `undefined`:
+例如，规范明确指出如果试图调用不可调用的东西时应该抛出错误。这听起来像是一个“明显的行为”，你可能会想象访问一个对象上不存在的属性时也会抛出一个错误，但是，JavaScript 给了我们不一样的行为，它返回了值 `undefined`：
 
 ```js
 let foo = {
@@ -101,11 +77,10 @@ let foo = {
     age: 26,
 };
 
-foo.location; // returns undefined
+foo.location; // 返回 undefined
 ```
 
-Ultimately, a static type system has to make the call over what code should be flagged as an error in its system, even if it's "valid" JavaScript that won't immediately throw an error.
-In TypeScript, the following code produces an error about `location` not being defined:
+根本上，静态类型系统一定会反馈出在其系统中标记为错误的代码，即使是不会立即报出错误的“有效”的 JavaScript 代码。在 TypeScript 中，以下代码会产生一个 `location` 未定义的错误：
 
 ```ts
 let foo = {
@@ -113,25 +88,23 @@ let foo = {
     age: 26,
 };
 
-foo.location; // returns undefined
+foo.location; // 返回 undefined
 ```
 
-While sometimes that implies a trade-off in what you can express, the intent is to catch legitimate bugs in our programs.
-And TypeScript catches *a lot* of legitimate bugs.
-For example: typos,
+虽然有时这意味着要在表达内容上进行权衡，但目的是捕捉我们程序中的合法 bug。并且 TypeScript 会捕获*很多*合法的 bug，例如：拼写错误，
 
 ```ts
 let someString = "Hello World!";
 
-// How quickly can you spot the typos?
+// 你能很快的发现这些拼写错误吗？
 someString.toLocaleLowercase();
 someString.toLocalLowerCase();
 
-// We probably meant to write this...
+// 我们的本意可能是这样的……
 someString.toLocaleLowerCase();
 ```
 
-uncalled functions,
+函数未调用，
 
 ```ts
 function flipCoin() {
@@ -139,7 +112,7 @@ function flipCoin() {
 }
 ```
 
-or basic logic errors.
+或者基本逻辑错误。
 
 ```ts
 const value = Math.random() < 0.5 ? "a" : "b";
@@ -147,7 +120,7 @@ if (value !== "a") {
     // ...
 }
 else if (value === "b") {
-    // Oops, unreachable
+  // 不会执行到这里
 }
 ```
 
@@ -155,8 +128,7 @@ else if (value === "b") {
 
 <!-- TODO: this section's title sucks -->
 
-TypeScript can catch bugs when we make mistakes in our code.
-That's great, but TypeScript can *also* prevent us from making those mistakes in the first place.
+在我们的代码出错时 TypeScript 可以捕获这些错误，这非常好，但是 TypeScript *还能* 提前阻止我们犯这些错误。
 
 The type-checker has information to check things like whether we're accessing the right properties on variables and other properties.
 Once it has that information, it can also start *suggesting* which properties you might want to use.
